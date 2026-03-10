@@ -8,7 +8,7 @@ include(Utilities)  # For string manipulation functions
 # NOTE: The build mode lists below are referenced by CI workflows for dynamic matrix generation.
 # Keep these declarations on single lines to enable automated parsing via grep/regex.
 # Format: set(VAR_NAME "val1" "val2" ... CACHE STRING "description")
-set(UE4SS_PROJECTS "UE4SS" "UVTD" CACHE STRING "List of main project targets")
+set(UE4SS_PROJECTS "UE4SS" CACHE STRING "List of main project targets")
 set(UE4SS_TARGET_TYPES "Game" "CasePreserving" "LessEqual421" CACHE STRING "UE4-style target types")
 set(UE4SS_CONFIGURATION_TYPES "Debug" "Dev" "Shipping" "Test" CACHE STRING "UE4-style configuration types")
 set(UE4SS_PLATFORM_TYPES "Win64" CACHE STRING "Supported platform types")

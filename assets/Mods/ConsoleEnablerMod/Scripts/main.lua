@@ -3,11 +3,9 @@
 --########################
 -- state
 local UEHelpers = require("UEHelpers")
-local Pre, Post = -1, -1
 local WasConsoleCreated = false
 -- CONFIGURATION
 -- you can edit the key names to your liking, make sure they match UE names
-local IsDynamicViewport = false
 local KeysToAdd = {
     UEHelpers.FindFName("Tilde"),
     UEHelpers.FindFName("F10")
@@ -61,7 +59,7 @@ local function CreateConsole()
         WasConsoleCreated = true
         RemapConsoleKeys()
     else
-        print("ConsoleClass, GameViewport, or ViewportConsole is invalid\n")
+        print("[ConsoleEnabler] ConsoleClass, GameViewport, or ViewportConsole is invalid\n")
     end
 end
 
@@ -71,18 +69,17 @@ end
 --########################
 
 --- In cases where ClientRestart runs earlier than ExecuteInGameThread
-if (not WasConsoleCreated or IsDynamicViewport) then
+if (not WasConsoleCreated) then
     ExecuteInGameThread(CreateConsole)
 end
 
 --- We only need to create console once since it is a VP singleton
-Pre, Post = RegisterHook("/Script/Engine.PlayerController:ClientRestart",
----@param Context RemoteUnrealParam<APlayerController>
-function(Context)
-    if (not WasConsoleCreated or IsDynamicViewport) then
+NotifyOnNewObject("/Script/Engine.PlayerController",
+---@param ConstructedObject RemoteUnrealParam<APlayerController>
+function(ConstructedObject)
+    if (not WasConsoleCreated) then
         CreateConsole()
-    end
-    if (WasConsoleCreated and not IsDynamicViewport) then
-        UnregisterHook("/Script/Engine.PlayerController:ClientRestart", Pre, Post)
+    else
+        return true
     end
 end)

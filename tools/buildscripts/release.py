@@ -27,33 +27,33 @@ class ReleaseHandler:
         # Lua mods to exclude from the non-dev/release version of the zip
         # And remove their entries from mods files
         self.lua_mods_to_exclude_from_release = [
-            'ActorDumperMod',
-            'jsbLuaProfilerMod',
+#            'ActorDumperMod',
+#            'jsbLuaProfilerMod',
         ]
 
         # Lua mods to disable (but keep) in the non-dev/release version
         self.lua_mods_to_disable_in_release = [
-            'LineTraceMod',
+#            'LineTraceMod',
         ]
 
         # Files in root/assets to exclude from the non-dev/release version of the zip 
         self.files_to_exclude_from_release = [
-            'Mods/shared/Types.lua',
-            'Mods/shared/jsbProfiler',
-            'UE4SS_Signatures',
-            'VTableLayoutTemplates',
-            'MemberVarLayoutTemplates',
-            'CustomGameConfigs',
-            'MapGenBP',
-            'Changelog.md',
-            'Default_UVTD_Configs'
+#            'Mods/shared/Types.lua',
+#            'Mods/shared/jsbProfiler',
+#            'UE4SS_Signatures',
+#            'VTableLayoutTemplates',
+#            'MemberVarLayoutTemplates',
+#            'CustomGameConfigs',
+#            'MapGenBP',
+#            'Changelog.md',
+#            'Default_UVTD_Configs'
         ]
 
         # Settings to change in the release. The default settings in assets/UE4SS-settings.ini are for dev
         self.settings_to_modify_in_release = {
             'GuiConsoleVisible': 0,
             'GuiConsoleEnabled': 0,
-            'ConsoleEnabled': 0,
+#            'ConsoleEnabled': 0,
             'EnableHotReloadSystem': 0,
             'MaxMemoryUsageDuringAssetLoading': 80,
             'bUseUObjectArrayCache': "false",
@@ -180,6 +180,7 @@ class ReleaseHandler:
         with open(mods_path, mode='w', encoding='utf-8') as file:
             file.writelines(content)
 
+'''
     def modify_mods_json(self):
         mods_path = os.path.join(self.ue4ss_dir, 'Mods', 'mods.json')
         with open(mods_path, mode='r', encoding='utf-8') as file:
@@ -206,6 +207,7 @@ class ReleaseHandler:
 
         with open(mods_path, mode='w', encoding='utf-8') as file:
             json.dump(content, file, indent=4)
+'''
 
     def copy_executables(self, dwmapi_dll_path, ue4ss_dll_path, ue4ss_pdb_path):
         shutil.copy(dwmapi_dll_path, self.staging_dir)
@@ -216,9 +218,11 @@ class ReleaseHandler:
         if self.is_dev_release and os.path.exists('docs'):
             shutil.copytree('docs', os.path.join(self.ue4ss_dir, 'Docs'))
 
+'''
     def modify_changelog(self):
         changelog_path = os.path.join(self.ue4ss_dir, 'Changelog.md')
         if os.path.exists(changelog_path): ready_changelog_for_release(changelog_path)
+'''
 
     def package_release(self):
         try:
@@ -261,12 +265,14 @@ class Packager:
         release_handler.package_release()
         release_handler.cleanup()
 
-        shutil.make_archive(os.path.join(self.release_output, 'zCustomGameConfigs'), 'zip', 'assets/CustomGameConfigs')
-        shutil.make_archive(os.path.join(self.release_output, 'zMapGenBP'), 'zip', 'assets/MapGenBP')
+#        shutil.make_archive(os.path.join(self.release_output, 'zCustomGameConfigs'), 'zip', 'assets/CustomGameConfigs')
+#        shutil.make_archive(os.path.join(self.release_output, 'zMapGenBP'), 'zip', 'assets/MapGenBP')
 
+'''
         changelog = parse_changelog(self.args.changelog_path)
         with open(os.path.join(self.release_output, 'release_notes.md'), 'w') as file:
             file.write(changelog[0]['notes'])
+'''
 
         print('Done')
 
