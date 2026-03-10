@@ -84,35 +84,8 @@ namespace RC
         REGISTER_BOOL_SETTING(General.UseCache, section_general, UseCache)
         REGISTER_BOOL_SETTING(General.InvalidateCacheIfDLLDiffers, section_general, InvalidateCacheIfDLLDiffers)
         REGISTER_BOOL_SETTING(General.EnableDebugKeyBindings, section_general, EnableDebugKeyBindings)
-        REGISTER_INT64_SETTING(General.SecondsToScanBeforeGivingUp, section_general, SecondsToScanBeforeGivingUp)
         REGISTER_BOOL_SETTING(General.UseUObjectArrayCache, section_general, bUseUObjectArrayCache)
-        REGISTER_BOOL_SETTING(General.DoEarlyScan, section_general, DoEarlyScan)
         REGISTER_BOOL_SETTING(General.SearchByAddress, section_general, bEnableSeachByMemoryAddress)
-        StringType default_exec_method_string{};
-        REGISTER_STRING_SETTING(default_exec_method_string, section_general, DefaultExecuteInGameThreadMethod)
-        if (String::iequal(default_exec_method_string, STR("ProcessEvent")))
-        {
-            General.DefaultExecuteInGameThreadMethod = GameThreadExecutionMethod::ProcessEvent;
-        }
-        else if (String::iequal(default_exec_method_string, STR("EngineTick")))
-        {
-            General.DefaultExecuteInGameThreadMethod = GameThreadExecutionMethod::EngineTick;
-        }
-        StringType default_fname_to_string_method{};
-        REGISTER_STRING_SETTING(default_fname_to_string_method, section_general, DefaultFNameToStringMethod)
-        if (String::iequal(default_fname_to_string_method, STR("Scan")))
-        {
-            General.DefaultFNameToStringMethod = Unreal::UnrealInitializer::FNameToStringMethod::Scan;
-        }
-        else if (String::iequal(default_fname_to_string_method, STR("Conv_NameToString")))
-        {
-            General.DefaultFNameToStringMethod = Unreal::UnrealInitializer::FNameToStringMethod::Conv_NameToString;
-        }
-
-        constexpr static File::CharType section_engine_version_override[] = STR("EngineVersionOverride");
-        REGISTER_INT64_SETTING(EngineVersionOverride.MajorVersion, section_engine_version_override, MajorVersion)
-        REGISTER_INT64_SETTING(EngineVersionOverride.MinorVersion, section_engine_version_override, MinorVersion)
-        REGISTER_BOOL_SETTING(EngineVersionOverride.DebugBuild, section_engine_version_override, DebugBuild)
 
         constexpr static File::CharType section_object_dumper[] = STR("ObjectDumper");
         REGISTER_BOOL_SETTING(ObjectDumper.LoadAllAssetsBeforeDumpingObjects, section_object_dumper, LoadAllAssetsBeforeDumpingObjects)
@@ -171,33 +144,6 @@ namespace RC
 
         constexpr static File::CharType section_memory[] = STR("Memory");
         REGISTER_INT64_SETTING(Memory.MaxMemoryUsageDuringAssetLoading, section_memory, MaxMemoryUsageDuringAssetLoading)
-
-        constexpr static File::CharType section_hooks[] = STR("Hooks");
-        REGISTER_BOOL_SETTING(Hooks.HookProcessInternal, section_hooks, HookProcessInternal)
-        REGISTER_BOOL_SETTING(Hooks.HookProcessLocalScriptFunction, section_hooks, HookProcessLocalScriptFunction)
-        REGISTER_BOOL_SETTING(Hooks.HookLoadMap, section_hooks, HookLoadMap)
-        REGISTER_BOOL_SETTING(Hooks.HookInitGameState, section_hooks, HookInitGameState)
-        REGISTER_BOOL_SETTING(Hooks.HookCallFunctionByNameWithArguments, section_hooks, HookCallFunctionByNameWithArguments)
-        REGISTER_BOOL_SETTING(Hooks.HookBeginPlay, section_hooks, HookBeginPlay)
-        REGISTER_BOOL_SETTING(Hooks.HookEndPlay, section_hooks, HookEndPlay)
-        REGISTER_BOOL_SETTING(Hooks.HookLocalPlayerExec, section_hooks, HookLocalPlayerExec)
-        REGISTER_BOOL_SETTING(Hooks.HookAActorTick, section_hooks, HookAActorTick)
-        REGISTER_BOOL_SETTING(Hooks.HookEngineTick, section_hooks, HookEngineTick)
-        StringType engine_tick_resolve_method_string{};
-        REGISTER_STRING_SETTING(engine_tick_resolve_method_string, section_hooks, EngineTickResolveMethod)
-        if (String::iequal(engine_tick_resolve_method_string, STR("VTable")))
-        {
-            Hooks.EngineTickResolveMethod = Unreal::UnrealInitializer::FunctionResolveMethod::VTable;
-        }
-        else if (String::iequal(engine_tick_resolve_method_string, STR("Scan")))
-        {
-            Hooks.EngineTickResolveMethod = Unreal::UnrealInitializer::FunctionResolveMethod::Scan;
-        }
-        REGISTER_BOOL_SETTING(Hooks.HookGameViewportClientTick, section_hooks, HookGameViewportClientTick)
-        REGISTER_BOOL_SETTING(Hooks.HookUObjectProcessEvent, section_hooks, HookUObjectProcessEvent)
-        REGISTER_BOOL_SETTING(Hooks.HookProcessConsoleExec, section_hooks, HookProcessConsoleExec)
-        REGISTER_BOOL_SETTING(Hooks.HookUStructLink, section_hooks, HookUStructLink)
-        REGISTER_INT64_SETTING(Hooks.FExecVTableOffsetInLocalPlayer, section_hooks, FExecVTableOffsetInLocalPlayer)
 
         constexpr static File::CharType section_experimental_features[] = STR("ExperimentalFeatures");
     }

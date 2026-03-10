@@ -69,9 +69,9 @@ end
 --########################
 
 --- In cases where ClientRestart runs earlier than ExecuteInGameThread
-if (not WasConsoleCreated) then
-    ExecuteInGameThread(CreateConsole)
-end
+-- if (not WasConsoleCreated) then
+--     ExecuteInGameThread(CreateConsole)
+-- end
 
 --- We only need to create console once since it is a VP singleton
 NotifyOnNewObject("/Script/Engine.PlayerController",

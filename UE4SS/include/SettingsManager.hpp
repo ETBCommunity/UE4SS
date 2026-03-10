@@ -34,21 +34,11 @@ namespace RC
             bool UseCache{true};
             bool InvalidateCacheIfDLLDiffers{true};
             bool EnableDebugKeyBindings{false};
-            int64_t SecondsToScanBeforeGivingUp{30};
+            int64_t SecondsToScanBeforeGivingUp{60};
             bool UseUObjectArrayCache{true};
             StringType InputSource{STR("Default")};
-            bool DoEarlyScan{false};
             bool SearchByAddress{false};
-            GameThreadExecutionMethod DefaultExecuteInGameThreadMethod{GameThreadExecutionMethod::EngineTick};
-            Unreal::UnrealInitializer::FNameToStringMethod DefaultFNameToStringMethod{Unreal::UnrealInitializer::FNameToStringMethod::Scan};
         } General;
-
-        struct SectionEngineVersionOverride
-        {
-            int64_t MajorVersion{-1};
-            int64_t MinorVersion{-1};
-            bool DebugBuild{false};
-        } EngineVersionOverride;
 
         struct SectionObjectDumper
         {

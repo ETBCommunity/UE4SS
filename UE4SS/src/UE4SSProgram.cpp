@@ -206,14 +206,6 @@ namespace RC
                 return;
             }
 
-            if (settings_manager.EngineVersionOverride.DebugBuild)
-            {
-                if (Unreal::Version::IsAtLeast(4, 25))
-                {
-                    Unreal::FUObjectItem::UEP_TotalSize() += sizeof(void*);
-                }
-            }
-
             if (settings_manager.CrashDump.EnableDumping)
             {
                 m_crash_dumper.enable();
@@ -628,27 +620,10 @@ namespace RC
 
         // Version override from ini file
         {
-            int64_t major_version = settings_manager.EngineVersionOverride.MajorVersion;
-            int64_t minor_version = settings_manager.EngineVersionOverride.MinorVersion;
+            Unreal::Version::Major = 4;
+            Unreal::Version::Minor = 27;
 
-            if (major_version != -1 && minor_version != -1)
-            {
-                // clang-format off
-                if (major_version < std::numeric_limits<uint32_t>::min() ||
-                    major_version > std::numeric_limits<uint32_t>::max() ||
-                    minor_version < std::numeric_limits<uint32_t>::min() ||
-                    minor_version > std::numeric_limits<uint32_t>::max())
-                {
-                    throw std::runtime_error{
-                            "Was unable to override engine version from ini file; The number in the ini file must be in range of a uint32"};
-                }
-                // clang-format on
-
-                Unreal::Version::Major = static_cast<uint32_t>(major_version);
-                Unreal::Version::Minor = static_cast<uint32_t>(minor_version);
-
-                config.ScanOverrides.version_finder = [&]([[maybe_unused]] auto&, Unreal::Signatures::ScanResult&) {};
-            }
+            config.ScanOverrides.version_finder = [&]([[maybe_unused]] auto&, Unreal::Signatures::ScanResult&) {};
         }
 
         // If any Lua scripts are found, add overrides so that the Lua script can perform the aob scan instead of the Unreal API itself
@@ -870,23 +845,7 @@ namespace RC
         config.bHookProcessConsoleExec = settings_manager.Hooks.HookProcessConsoleExec;
         config.bHookUStructLink = settings_manager.Hooks.HookUStructLink;
         config.FExecVTableOffsetInLocalPlayer = settings_manager.Hooks.FExecVTableOffsetInLocalPlayer;
-        config.FNameToStringMethod = settings_manager.General.DefaultFNameToStringMethod;
-        // Apply Debug Build setting from settings file only for now.
-        Unreal::Version::DebugBuild = settings_manager.EngineVersionOverride.DebugBuild;
-        Output::send<LogLevel::Warning>(STR("DebugGame Setting Enabled? {}\n"), Unreal::Version::DebugBuild);
-        if (settings_manager.General.DoEarlyScan)
-        {
-            // Scan a single time while the game thread is locked after UE4SS is attached.
-            Unreal::UnrealInitializer::PreInitialize(config);
-            try
-            {
-                Unreal::UnrealInitializer::ScanGame();
-            }
-            catch (std::runtime_error&)
-            {
-                // No work to be done here. Error is non-fatal, just let the 'Initialize' function take it from here.
-            }
-        }
+
         cpp_mods_done_loading.store(true);
         cpp_mods_done_loading.notify_one();
         // Continuous scanning, and finish initializing after the game thread is unlocked.
@@ -1067,9 +1026,6 @@ namespace RC
                 }
             }
 #endif
-
-            // Set default ExecuteInGameThread method from settings
-            LuaMod::m_default_game_thread_method = settings_manager.General.DefaultExecuteInGameThreadMethod;
 
             install_lua_mods();
             LuaMod::on_program_start();
