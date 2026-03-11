@@ -264,16 +264,26 @@ namespace RC
             //*/
 
             Output::send(STR("Console created\n"));
-            Output::send(STR("UE4SS - v{}.{}.{}{}{} - Git SHA #{}\n"),
+            Output::send(STR("UE4SS - v{}.{}.{}{}{} ({})\n"),
                          UE4SS_LIB_VERSION_MAJOR,
                          UE4SS_LIB_VERSION_MINOR,
                          UE4SS_LIB_VERSION_HOTFIX,
-                         fmt::format(STR("{}"), UE4SS_LIB_VERSION_PRERELEASE == 0 ? STR("") : fmt::format(STR(" PreRelease #{}"), UE4SS_LIB_VERSION_PRERELEASE)),
+                         fmt::format(STR("{}"), UE4SS_LIB_VERSION_PRERELEASE == 0 ? STR("") : fmt::format(STR("-rc.{}"), UE4SS_LIB_VERSION_PRERELEASE)),
                          fmt::format(STR("{}"),
                                      UE4SS_LIB_BETA_STARTED == 0
                                              ? STR("")
-                                             : (UE4SS_LIB_IS_BETA == 0 ? STR(" Beta #?") : fmt::format(STR(" Beta #{}"), UE4SS_LIB_VERSION_BETA))),
+                                             : (UE4SS_LIB_IS_BETA == 0 ? STR("-beta") : fmt::format(STR("-beta.{}"), UE4SS_LIB_VERSION_BETA))),
                          ensure_str(UE4SS_LIB_BUILD_GITSHA));
+            Output::send(STR("UE4SS-ETB - v{}.{}.{}{}{} ({})\n"),
+                         UE4SS_ETB_LIB_VERSION_MAJOR,
+                         UE4SS_ETB_LIB_VERSION_MINOR,
+                         UE4SS_ETB_LIB_VERSION_HOTFIX,
+                         fmt::format(STR("{}"), UE4SS_ETB_LIB_VERSION_PRERELEASE == 0 ? STR("") : fmt::format(STR("-rc.{}"), UE4SS_ETB_LIB_VERSION_PRERELEASE)),
+                         fmt::format(STR("{}"),
+                                     UE4SS_LIB_BETA_STARTED == 0
+                                             ? STR("")
+                                             : (UE4SS_LIB_IS_BETA == 0 ? STR("-beta") : fmt::format(STR("-beta.{}"), UE4SS_ETB_LIB_VERSION_BETA))),
+                         ensure_str(UE4SS_ETB_LIB_BUILD_GITSHA));
             bool use_local_time = true;
 #ifdef _WIN32
             if (auto module = GetModuleHandleW(L"ntdll.dll"); module && GetProcAddress(module, "wine_get_version"))
