@@ -280,9 +280,9 @@ namespace RC
                          UE4SS_ETB_LIB_VERSION_HOTFIX,
                          fmt::format(STR("{}"), UE4SS_ETB_LIB_VERSION_PRERELEASE == 0 ? STR("") : fmt::format(STR("-rc.{}"), UE4SS_ETB_LIB_VERSION_PRERELEASE)),
                          fmt::format(STR("{}"),
-                                     UE4SS_LIB_BETA_STARTED == 0
+                                     UE4SS_ETB_LIB_BETA_STARTED == 0
                                              ? STR("")
-                                             : (UE4SS_LIB_IS_BETA == 0 ? STR("-beta") : fmt::format(STR("-beta.{}"), UE4SS_ETB_LIB_VERSION_BETA))),
+                                             : (UE4SS_ETB_LIB_IS_BETA == 0 ? STR("-beta") : fmt::format(STR("-beta.{}"), UE4SS_ETB_LIB_VERSION_BETA))),
                          ensure_str(UE4SS_ETB_LIB_BUILD_GITSHA));
             bool use_local_time = true;
 #ifdef _WIN32

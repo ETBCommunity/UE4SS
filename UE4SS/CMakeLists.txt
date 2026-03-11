@@ -10,6 +10,9 @@ add_subdirectory("proxy_generator")
 option(UE4SS_LIB_BETA_IS_STARTED "Have beta releases started for the current major version" ON)
 option(UE4SS_LIB_IS_BETA "Is this a beta release" ON)
 
+option(UE4SS_ETB_LIB_BETA_IS_STARTED "Have beta releases started for the current major version (UE4SS-ETB)" ON)
+option(UE4SS_ETB_LIB_IS_BETA "Is this a beta release (UE4SS-ETB)" ON)
+
 # Define generated directories
 set(UE4SS_GENERATED_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/generated_include")
 set(UE4SS_GENERATED_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/generated_src")
@@ -94,6 +97,8 @@ target_compile_definitions(UE4SS PUBLIC
     UE4SS_ETB_LIB_VERSION_HOTFIX=${UE4SS_ETB_LIB_VERSION_HOTFIX}
     UE4SS_ETB_LIB_VERSION_PRERELEASE=${UE4SS_ETB_LIB_VERSION_PRERELEASE}
     UE4SS_ETB_LIB_VERSION_BETA=${UE4SS_ETB_LIB_VERSION_BETA}
+    UE4SS_ETB_LIB_BETA_STARTED=$<BOOL:${UE4SS_ETB_LIB_BETA_IS_STARTED}>
+    UE4SS_ETB_LIB_IS_BETA=$<BOOL:${UE4SS_ETB_LIB_IS_BETA}>
     UE4SS_ETB_LIB_BUILD_GITSHA="${UE4SS_ETB_LIB_BUILD_GITSHA}"
     UE4SS_CONFIGURATION="$<CONFIG>"
 )
