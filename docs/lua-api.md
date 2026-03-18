@@ -193,6 +193,16 @@ This is an overall list of API definitions available in UE4SS. For more readable
         - Registers a callback that will get called after UEngine::LoadMap is called.
         - The callback params are: UEngine Enigne, struct FWorldContext& WorldContext, FURL URL, class UPendingNetGame* PendingGame, FString& Error
         - Params (except strings & bools & FOutputDevice) must be retrieved via 'Param:Get()' and set via 'Param:Set()'.
+        
+    RegisterLoadMapMPPreHook(function Callback)
+        - Registers a callback that will get called before UEngine::LoadMap multiplayer equivalent is called.
+        - The callback params are: FURL NewURL
+        - Params (except strings & bools & FOutputDevice) must be retrieved via 'Param:Get()' and set via 'Param:Set()'.
+        
+    RegisterLoadMapMPPostHook(function Callback)
+        - Registers a callback that will get called after UEngine::LoadMap multiplayer equivalent is called.
+        - The callback params are: FURL NewURL, UWorld* NewWorld
+        - Params (except strings & bools & FOutputDevice) must be retrieved via 'Param:Get()' and set via 'Param:Set()'.
 
     RegisterInitGameStatePreHook(function Callback)
         - Registers a callback that will get called before AGameModeBase::InitGameState is called.

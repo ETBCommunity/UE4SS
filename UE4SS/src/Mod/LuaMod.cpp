@@ -2432,6 +2432,62 @@ Overloads:
             return 0;
         });
 
+        lua.register_function("RegisterLoadMapMPPreHook", [](const LuaMadeSimple::Lua& lua) -> int {
+            std::string error_overload_not_found{R"(
+No overload found for function 'RegisterLoadMapMPPreHook'.
+Overloads:
+#1: RegisterLoadMapMPPreHook(LuaFunction Callback))"};
+
+            if (!lua.is_function())
+            {
+                lua.throw_error(error_overload_not_found);
+            }
+
+            auto mod = get_mod_ref(lua);
+            auto hook_lua = get_hook_lua(mod);
+
+            lua_xmove(lua.get_lua_state(), hook_lua->get_lua_state(), 1);
+
+            // Take a reference to the Lua function (it also pops it of the stack)
+            const int32_t lua_callback_registry_index = hook_lua->registry().make_ref();
+
+            LuaMod::m_load_map_pre_mp_callbacks.emplace_back(LuaMod::LuaCallbackData{
+                    .lua = hook_lua,
+                    .instance_of_class = nullptr,
+                    .registry_indexes = {std::pair<const LuaMadeSimple::Lua*, LuaMod::LuaCallbackData::RegistryIndex>{hook_lua, lua_callback_registry_index}},
+            });
+
+            return 0;
+        });
+
+        lua.register_function("RegisterLoadMapMPPostHook", [](const LuaMadeSimple::Lua& lua) -> int {
+            std::string error_overload_not_found{R"(
+No overload found for function 'RegisterLoadMapMPPostHook'.
+Overloads:
+#1: RegisterLoadMapMPPostHook(LuaFunction Callback))"};
+
+            if (!lua.is_function())
+            {
+                lua.throw_error(error_overload_not_found);
+            }
+
+            auto mod = get_mod_ref(lua);
+            auto hook_lua = get_hook_lua(mod);
+
+            lua_xmove(lua.get_lua_state(), hook_lua->get_lua_state(), 1);
+
+            // Take a reference to the Lua function (it also pops it of the stack)
+            const int32_t lua_callback_registry_index = hook_lua->registry().make_ref();
+
+            LuaMod::m_load_map_post_mp_callbacks.emplace_back(LuaMod::LuaCallbackData{
+                    .lua = hook_lua,
+                    .instance_of_class = nullptr,
+                    .registry_indexes = {std::pair<const LuaMadeSimple::Lua*, LuaMod::LuaCallbackData::RegistryIndex>{hook_lua, lua_callback_registry_index}},
+            });
+
+            return 0;
+        });
+
         lua.register_function("RegisterInitGameStatePreHook", [](const LuaMadeSimple::Lua& lua) -> int {
             std::string error_overload_not_found{R"(
 No overload found for function 'RegisterInitGameStatePreHook'.
@@ -5461,6 +5517,8 @@ Overloads:
         erase_from_container(this, m_call_function_by_name_with_arguments_post_callbacks);
         erase_from_container(this, m_local_player_exec_pre_callbacks);
         erase_from_container(this, m_local_player_exec_post_callbacks);
+        erase_from_container(this, m_load_map_pre_mp_callbacks);
+        erase_from_container(this, m_load_map_post_mp_callbacks);
         erase_from_container(this, m_script_hook_callbacks);
 
         UE4SSProgram::get_program().get_all_input_events([&](auto& key_set) {
@@ -6129,6 +6187,41 @@ Overloads:
                         return return_value;
                     });
                 });
+
+        Unreal::Hook::RegisterLoadMapMPPreCallback(
+                [](Unreal::Hook::TCallbackIterationData<Unreal::UWorld*>& CallbackIterationData, Unreal::FSeamlessTravelHandler* Context) {
+                    TRY([&] {
+                        for (const auto& callback_data : m_load_map_pre_mp_callbacks)
+                        {
+                            for (const auto& [lua_ptr, registry_index] : callback_data.registry_indexes)
+                            {
+                                const auto& lua = *lua_ptr;
+                                lua.registry().get_function_ref(registry_index.lua_index);
+                                LuaType::FURL::construct(lua, Context->PendingTravelURL);
+                                lua.call_function(1, 0);
+                            }
+                        }
+                    });
+                }, common_opts);
+
+        Unreal::Hook::RegisterLoadMapMPPostCallback(
+                [](Unreal::Hook::TCallbackIterationData<Unreal::UWorld*>& CallbackIterationData, Unreal::FSeamlessTravelHandler* Context) {
+                    TRY([&] {
+                        auto world_ptr = CallbackIterationData.GetCurrentResolvedReturnValue();
+                        for (const auto& callback_data : m_load_map_post_mp_callbacks)
+                        {
+                            for (const auto& [lua_ptr, registry_index] : callback_data.registry_indexes)
+                            {
+                                const auto& lua = *lua_ptr;
+                                static auto s_object_property_name = Unreal::FName(STR("ObjectProperty"), Unreal::FNAME_Find);
+                                lua.registry().get_function_ref(registry_index.lua_index);
+                                LuaType::FURL::construct(lua, Context->PendingTravelURL);
+                                LuaType::RemoteUnrealParam::construct(lua, &world_ptr, s_object_property_name);
+                                lua.call_function(2, 0);
+                            }
+                        }
+                    });
+                }, common_opts);
 
         // Lua from the in-game console.
         Unreal::Hook::RegisterProcessConsoleExecCallback([](Unreal::UObject* context, const TCHAR* cmd, Unreal::FOutputDevice& ar, Unreal::UObject* executor) -> bool {

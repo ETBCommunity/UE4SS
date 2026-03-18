@@ -107,6 +107,7 @@ namespace RC
             bool HookUObjectProcessEvent{true};
             bool HookProcessConsoleExec{true};
             bool HookUStructLink{true};
+            bool HookLoadMapMP{true};
             int64_t FExecVTableOffsetInLocalPlayer{0x28};
         } Hooks;
 

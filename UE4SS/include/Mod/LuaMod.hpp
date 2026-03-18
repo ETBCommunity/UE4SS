@@ -156,6 +156,8 @@ namespace RC
         static inline std::vector<LuaCallbackData> m_begin_play_post_callbacks{};
         static inline std::vector<LuaCallbackData> m_end_play_pre_callbacks{};
         static inline std::vector<LuaCallbackData> m_end_play_post_callbacks{};
+        static inline std::vector<LuaCallbackData> m_load_map_pre_mp_callbacks{};
+        static inline std::vector<LuaCallbackData> m_load_map_post_mp_callbacks{};
         static inline std::vector<FunctionHookData> m_script_hook_callbacks{};
         static inline bool m_is_currently_executing_game_action{};
         static inline std::recursive_mutex m_thread_actions_mutex{};

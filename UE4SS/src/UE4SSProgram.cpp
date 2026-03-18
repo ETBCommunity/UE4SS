@@ -854,6 +854,7 @@ namespace RC
         config.bHookUObjectProcessEvent = settings_manager.Hooks.HookUObjectProcessEvent;
         config.bHookProcessConsoleExec = settings_manager.Hooks.HookProcessConsoleExec;
         config.bHookUStructLink = settings_manager.Hooks.HookUStructLink;
+        config.bHookLoadMapMP = settings_manager.Hooks.HookLoadMapMP;
         config.FExecVTableOffsetInLocalPlayer = settings_manager.Hooks.FExecVTableOffsetInLocalPlayer;
 
         cpp_mods_done_loading.store(true);

@@ -293,9 +293,13 @@ RegisterLoadMapPostHook(function(Engine, World)
     LoadMods(World:get())
 end)
 
-ExecuteInGameThread(function()
-    local ExistingActor = FindFirstOf("Actor")
-    if ExistingActor:IsValid() then
-        LoadMods(ExistingActor:GetWorld())
-    end
+RegisterLoadMapMPPostHook(function(NewURL, NewWorld)
+    LoadMods(NewWorld:get())
 end)
+
+-- ExecuteInGameThread(function()
+--     local ExistingActor = FindFirstOf("Actor")
+--     if ExistingActor:IsValid() then
+--         LoadMods(ExistingActor:GetWorld())
+--     end
+-- end)
