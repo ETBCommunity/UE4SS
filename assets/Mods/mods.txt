@@ -1,7 +1,7 @@
 CheatManagerEnablerMod : 1
 ConsoleCommandsMod : 1
 ConsoleEnablerMod : 1
-LineTraceMod : 0
+LineTraceMod : 1
 BPML_GenericFunctions : 1
 BPModLoaderMod : 1
 jsbLuaProfilerMod : 0
