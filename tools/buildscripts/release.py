@@ -95,7 +95,7 @@ class ReleaseHandler:
 
         # needs to be run inside staging as we don't want to modify the original
         # only run this if we are not doing an experimental release, as we don't want the date to be set in experimental releases
-        # if not self.is_experimental: self.modify_changelog()
+        if not self.is_experimental: self.modify_changelog()
 
     def modify_settings(self, settings_to_modify):
         config_path = os.path.join(self.ue4ss_dir, 'UE4SS-settings.ini')
@@ -265,9 +265,9 @@ class Packager:
 #        shutil.make_archive(os.path.join(self.release_output, 'zCustomGameConfigs'), 'zip', 'assets/CustomGameConfigs')
 #        shutil.make_archive(os.path.join(self.release_output, 'zMapGenBP'), 'zip', 'assets/MapGenBP')
 
-        # changelog = parse_changelog(self.args.changelog_path)
-        # with open(os.path.join(self.release_output, 'release_notes.md'), 'w') as file:
-        #     file.write(changelog[0]['notes'])
+        changelog = parse_changelog(self.args.changelog_path)
+        with open(os.path.join(self.release_output, 'release_notes.md'), 'w') as file:
+            file.write(changelog[0]['notes'])
 
         print('Done')
 
