@@ -4,6 +4,7 @@ ConsoleEnablerMod : 1
 LineTraceMod : 1
 BPML_GenericFunctions : 1
 BPModLoaderMod : 1
+ETBCommandsMod : 1
 jsbLuaProfilerMod : 0
 
 
