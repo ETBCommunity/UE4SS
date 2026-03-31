@@ -1,3 +1,7 @@
+# Fork of https://github.com/UE4SS-RE/RE-UE4SS
+
+List of changes is in https://github.com/ETBCommunity/UE4SS/releases
+
 # Unreal Engine 4/5 Scripting System
 
 Lua scripting system platform, C++ Modding API, SDK generator, blueprint mod loader, live property editor and other dumping utilities for UE4/5 games.
