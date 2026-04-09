@@ -40,6 +40,7 @@
 #include <UE4SSProgram.hpp>
 #include <Unreal/AGameMode.hpp>
 #include <Unreal/AGameModeBase.hpp>
+#include <Unreal/GameThreadDispatcher.hpp>
 #include <Unreal/GameplayStatics.hpp>
 #include <Unreal/Searcher/ObjectSearcher.hpp>
 #include <Unreal/Core/Templates/Tuple.hpp>
@@ -406,6 +407,8 @@ namespace RC
         try
         {
             setup_unreal();
+
+            Unreal::GameThreadDispatcher::Initialize();
 
             Output::send(STR("Unreal Engine modules ({}):\n"), SigScannerStaticData::m_is_modular ? STR("modular") : STR("non-modular"));
             auto& main_exe_ptr = SigScannerStaticData::m_modules_info.array[static_cast<size_t>(ScanTarget::MainExe)].lpBaseOfDll;

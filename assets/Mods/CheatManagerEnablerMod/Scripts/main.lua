@@ -1,6 +1,15 @@
 NotifyOnNewObject("/Script/Engine.PlayerController",
 ---@param ConstructedObject RemoteUnrealParam<APlayerController>
 function(ConstructedObject)
+    if not ConstructedObject:IsLocalPlayerController() then
+        return
+    end
+
+    if ConstructedObject.CheatManager:IsValid() then
+        print("[CheatManagerEnabler] CheatManager already exist, skipping restoration\n")
+        return
+    end
+
     local CheatManagerClass = ConstructedObject.CheatClass
     if not CheatManagerClass:IsValid() then
         print("[CheatManagerEnabler] Controller:CheatClass is nullptr, using default CheatClass instead\n")
@@ -13,7 +22,7 @@ function(ConstructedObject)
         return
     end
     
-    local CreatedCheatManager = StaticConstructObject(CheatManagerClass, ConstructedObject, 0, 0, 0, nil, false, false, nil)
+    local CreatedCheatManager = StaticConstructObject(CheatManagerClass, ConstructedObject)
     if CreatedCheatManager:IsValid() then
         print(string.format("[CheatManagerEnabler] Constructed CheatManager [0x%X]\n", CreatedCheatManager:GetAddress()))
         

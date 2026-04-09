@@ -1,28 +1,33 @@
 function ProcessSanityCommand(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
-    if PlayerStateCache == nil or not PlayerStateCache:IsValid() then
-        PlayerStateCache = FindFirstOf("MP_PS_C") --[[@as AActor]]
-        if not PlayerStateCache:IsValid() then
-            Log("Couldn't find the player state.")
+    if ControllerCache == nil or not ControllerCache:IsValid() then
+        ControllerCache = FindFirstOf("MP_PlayerController_C") --[[@as AActor]]
+        if ControllerCache == nil or not ControllerCache:IsValid() then
+            Log("Couldn't find the player controller.")
             return true
         end
     end
 
     StartHook()
 
-    return ProcessSanity(PlayerStateCache, true)
+    return ProcessSanity(ControllerCache.PlayerState, true)
 end
 
 function ProcessSanity(State, bPrint)
+    if State == nil or not State:IsValid() then
+        Log("Player State is invalid.")
+        return true
+    end
+
     if not SanityActive then
         SanityActive = true
-        State:SetPropertyValue("ShouldLowerSanity", false)
-        State:SetPropertyValue("Sanity", 100.0)
+        State.ShouldLowerSanity = false
+        State.Sanity = 100.0
         if bPrint then Log("Infinite sanity on") end
     else
         SanityActive = false
-        State:SetPropertyValue("ShouldLowerSanity", true)
+        State.ShouldLowerSanity = true
         if bPrint then Log("Infinite sanity off") end
     end
 

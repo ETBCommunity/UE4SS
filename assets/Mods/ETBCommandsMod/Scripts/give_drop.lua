@@ -32,6 +32,7 @@ local aliases = {
     ["eb"] = "energybar",
     ["fw"] = "firework",
     ["fg"] = "flaregun",
+    ["GlowstickGreen"] = "glowstick",
     ["j"] = "juice",
     ["lp"] = "liquidpain",
     ["jelly"] = "mothjelly",
@@ -76,8 +77,8 @@ function ProcessSpawnItemCommand(FullCommand, Parameters, Ar)
         EnergyBar (Alias: eb)
         Firework (Alias: fw)
         FlareGun (Alias: fg)
-        Glowstick
         GlowstickBlue
+        GlowstickGreen
         GlowstickRed
         GlowstickYellow
         Juice (Alias: j)
@@ -102,18 +103,20 @@ function ProcessSpawnItemCommand(FullCommand, Parameters, Ar)
         return true
     end
 
-    if CharacterCache == nil or not CharacterCache:IsValid() then
-        CharacterCache = FindFirstOf("BPCharacter_Demo_C") --[[@as AActor]]
-        if not CharacterCache:IsValid() then
-            Log("Couldn't find the player character.")
+    if ControllerCache == nil or not ControllerCache:IsValid() then
+        ControllerCache = FindFirstOf("MP_PlayerController_C") --[[@as AActor]]
+        if ControllerCache == nil or not ControllerCache:IsValid() then
+            Log("Couldn't find the player controller.")
             return true
         end
     end
 
     if command:sub(1, 1) == "g" then
-        CharacterCache:InvAddByName(FName(arg))
+        ControllerCache.Character:InvAddByName(FName(arg))
+        Log(string.format("Added %s to your inventory.", arg))
     else
-        CharacterCache:DropItem_SERVER(FName(arg))
+        ControllerCache.Character:DropItem_SERVER(FName(arg))
+        Log(string.format("Spawned and dropped %s.", arg))
     end
 
     return true

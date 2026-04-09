@@ -372,10 +372,11 @@ function UninstallMod(ModName) end
 --- The callback params are: UObject self, UFunctionParams...
 --- Returns two ids, both of which must be passed to `UnregisterHook` if you want to unregister the hook.
 ---@param UFunctionName string
----@param Callback fun(self: UObject, ...)
+---@param CallbackPre fun(self: UObject, ...)
+---@param CallbackPost? fun(self: UObject, ...)
 ---@return integer PreId
 ---@return integer PostId
-function RegisterHook(UFunctionName, Callback) end
+function RegisterHook(UFunctionName, CallbackPre, CallbackPost) end
 
 ---Unregisters a hook.
 ---@param UFunctionName string
