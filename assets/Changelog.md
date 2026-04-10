@@ -1,3 +1,18 @@
+v1.2.1
+==============
+TBD
+
+Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cda8aa151e2fdb15cbe6c10c9)
+
+## Changes
+
+- Reverted CheatManagerEnablerMod changes
+
+### If you are replacing an old installation, also replace the Mods folder to get the latest changes.
+
+#### If you want to develop mods, download the `zDev-UE4SS_...` version - it contains the pdb file for easier debugging.
+
+
 v1.2.0
 ==============
 TBD
@@ -10,7 +25,7 @@ Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cd
 - Fixed ETBCommandsMod picking incorrect player
 - Small changes to ETBCommandsMod and CheatManagerEnablerMod
 
-### If you are replacing an old installation also replace the Mods folder to get the latest changes.
+### If you are replacing an old installation, also replace the Mods folder to get the latest changes.
 
 #### If you want to develop mods, download the `zDev-UE4SS_...` version - it contains the pdb file for easier debugging.
 
