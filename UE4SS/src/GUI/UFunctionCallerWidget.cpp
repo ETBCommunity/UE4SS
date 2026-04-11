@@ -7,6 +7,7 @@
 #include <Unreal/CoreUObject/UObject/Class.hpp>
 #include <Unreal/UObject.hpp>
 #include <Unreal/UObjectGlobals.hpp>
+#include <Unreal/GameThreadDispatcher.hpp>
 
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -144,7 +145,10 @@ namespace RC::GUI
             auto& function_flags = s_function->GetFunctionFlags();
             function_flags |= FUNC_Exec;
             Output::send(STR("Processing command: {}\n"), s_cmd);
-            bool call_succeeded = s_instance->ProcessConsoleExecInGameThread(FromCharTypePtr<TCHAR>(s_cmd.c_str()), s_ar, s_executor);
+            bool call_succeeded{};
+            GameThreadDispatcher::ExecuteInGameThreadAndWait([&] {
+                call_succeeded = s_instance->ProcessConsoleExec(FromCharTypePtr<TCHAR>(s_cmd.c_str()), s_ar, s_executor);
+            });
             Output::send(STR("call_succeeded: {}\n"), call_succeeded);
             function_flags &= ~FUNC_Exec;
         }
@@ -272,7 +276,9 @@ namespace RC::GUI
             bool ReturnValue{};
         };
         Params params{};
-        pawn->ProcessEventInGameThread(function, &params);
+        GameThreadDispatcher::ExecuteInGameThreadAndWait([&] {
+            pawn->ProcessEvent(function, &params);
+        });
         return params.ReturnValue;
     }
 
