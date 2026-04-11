@@ -1,6 +1,21 @@
-v1.2.1
+v1.2.2
 ==============
 TBD
+
+Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cda8aa151e2fdb15cbe6c10c9)
+
+## Changes
+
+- Separated InGameThread implementation to fix some Lua crashes (infinite loading now might still happen, in that case you need to ExecuteInGameThread)
+
+### If you are replacing an old installation, also replace the Mods folder to get the latest changes.
+
+#### If you want to develop mods, download the `zDev-UE4SS_...` version - it contains the pdb file for easier debugging.
+
+
+v1.2.1
+==============
+10-04-2026
 
 Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cda8aa151e2fdb15cbe6c10c9)
 
@@ -15,7 +30,7 @@ Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cd
 
 v1.2.0
 ==============
-TBD
+09-04-2026
 
 Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cda8aa151e2fdb15cbe6c10c9)
 
