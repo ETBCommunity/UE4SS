@@ -4,6 +4,8 @@
 
 UnrealEngine-4.27.2-release/
 
+cppmods/Test/
+
 # Visual Studio
 .vs/
 *.vcxproj*
