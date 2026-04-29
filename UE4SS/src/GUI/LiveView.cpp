@@ -30,21 +30,18 @@
 #include <Helpers/String.hpp>
 #include <glaze/glaze.hpp>
 #include <UE4SSProgram.hpp>
-#include <Unreal/AActor.hpp>
 #include <Unreal/FOutputDevice.hpp>
 #include <Unreal/CoreUObject/UObject/UnrealType.hpp>
 #include <Unreal/Property/FEnumProperty.hpp>
 #include <Unreal/CoreUObject/UObject/Class.hpp>
 #include <Unreal/UObject.hpp>
 #include <Unreal/UObjectArray.hpp>
-#include <Unreal/UPackage.hpp>
 #include <Unreal/UnrealInitializer.hpp>
 #include <Unreal/UKismetNodeHelperLibrary.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <IconsFontAwesome5.h>
 #include <misc/cpp/imgui_stdlib.h>
-#include <fmt/chrono.h>
 
 namespace RC::GUI
 {
@@ -68,7 +65,6 @@ namespace RC::GUI
     std::vector<LiveView::ObjectOrProperty> LiveView::s_object_view_history{{nullptr, nullptr, false}};
     size_t LiveView::s_currently_selected_object_index{};
     std::unordered_map<UObject*, std::vector<size_t>> LiveView::s_history_object_to_index{{nullptr, {0}}};
-    std::vector<UObject*> LiveView::s_name_search_results{};
     std::unordered_set<UObject*> LiveView::s_name_search_results_set{};
     std::string LiveView::s_name_to_search_by{};
     std::vector<std::unique_ptr<LiveView::Watch>> LiveView::s_watches{};
@@ -76,6 +72,7 @@ namespace RC::GUI
     std::unordered_map<void*, std::vector<LiveView::Watch*>> LiveView::s_watch_containers{};
     bool LiveView::s_include_inheritance{};
     bool LiveView::s_apply_search_filters_when_not_searching{};
+    bool LiveView::s_force_refresh_search_on_tab_switch{true};
     bool LiveView::s_create_listener_removed{};
     bool LiveView::s_delete_listener_removed{};
     bool LiveView::s_selected_item_deleted{};
@@ -167,7 +164,6 @@ namespace RC::GUI
                 });
                 if (super_full_name.find(name_to_search_by) != super_full_name.npos)
                 {
-                    LiveView::s_name_search_results.emplace_back(object);
                     LiveView::s_name_search_results_set.emplace(object);
                     break;
                 }
@@ -190,7 +186,6 @@ namespace RC::GUI
             {
                 if (std::regex_search(object_full_name.begin(), object_full_name.end(), std::regex(name_to_search_by)))
                 {
-                    LiveView::s_name_search_results.emplace_back(object);
                     LiveView::s_name_search_results_set.emplace(object);
                 }
             }
@@ -206,7 +201,6 @@ namespace RC::GUI
 
         if (ignore_name || object_full_name.find(name_to_search_by) != object_full_name.npos)
         {
-            LiveView::s_name_search_results.emplace_back(object);
             LiveView::s_name_search_results_set.emplace(object);
         }
 
@@ -225,20 +219,12 @@ namespace RC::GUI
         uintptr_t object_size = uclass->GetPropertiesSize();
         if (address_to_search_by < object_addr + object_size)
         {
-            LiveView::s_name_search_results.emplace_back(object);
             LiveView::s_name_search_results_set.emplace(object);
         }
     }
 
     static auto remove_search_result(UObject* object) -> void
     {
-        LiveView::s_name_search_results.erase(std::remove_if(LiveView::s_name_search_results.begin(),
-                                                             LiveView::s_name_search_results.end(),
-                                                             [&](const auto& item) {
-                                                                 return item == object;
-                                                             }),
-                                              LiveView::s_name_search_results.end());
-
         LiveView::s_name_search_results_set.erase(object);
 
         {
@@ -866,25 +852,6 @@ namespace RC::GUI
         delete m_function_caller_widget;
     }
 
-    auto LiveView::guobjectarray_iterator(int32_t int_data_1, int32_t int_data_2, const std::function<void(UObject*)>& callable) -> void
-    {
-        Filter::s_highlighted_properties.clear();
-        UObjectGlobals::ForEachUObjectInRange(int_data_1, int_data_2, [&](UObject* object, ...) {
-            // TODO: Stop using the 'HashObject' function when needing the address of an FFieldClassVariant because it's not designed to return an address.
-            //       Maybe make the ToFieldClass/ToUClass functions public (append 'Unsafe' to the function names).
-            if (s_need_to_filter_out_properties && object->IsA(std::bit_cast<UClass*>(FProperty::StaticClass().HashObject())))
-            {
-                return LoopAction::Continue;
-            }
-            if (s_apply_search_filters_when_not_searching && RC_LIVE_VIEW_WAS_FILTERED(filter_out_objects(object)))
-            {
-                return LoopAction::Continue;
-            }
-            callable(object);
-            return LoopAction::Continue;
-        });
-    }
-
     auto LiveView::select_object(size_t index, const FUObjectItem* object_item, UObject* object, AffectsHistory affects_history) -> void
     {
         if (object_item && object && affects_history == AffectsHistory::Yes)
@@ -946,28 +913,12 @@ namespace RC::GUI
         }
     }
 
-    auto LiveView::guobjectarray_by_name_iterator(int32_t int_data_1, int32_t int_data_2, const std::function<void(UObject*)>& callable) -> void
-    {
-        if (int_data_2 > s_name_search_results.size())
-        {
-            Output::send<LogLevel::Error>(STR("guobjectarray_by_name_iterator: asked to iterate beyond the size of the search result vector ({} > {})\n"),
-                                          int_data_2,
-                                          s_name_search_results.size());
-            return;
-        }
-        for (size_t i = int_data_1; i < int_data_2; i++)
-        {
-            callable(s_name_search_results[i]);
-        }
-    }
-
     auto LiveView::make_filtered_set(bool ignore_name) -> void
     {
         if (!ignore_name)
         {
             Output::send(STR("Searching by name...\n"));
         }
-        s_name_search_results.clear();
         s_name_search_results_set.clear();
         Filter::s_highlighted_properties.clear();
 
@@ -1044,7 +995,6 @@ namespace RC::GUI
             {
                 Output::send(STR("Search all chunks\n"));
                 s_name_to_search_by.clear();
-                m_object_iterator = &LiveView::guobjectarray_iterator;
                 m_is_searching_by_name = false;
             }
             else
@@ -1052,14 +1002,12 @@ namespace RC::GUI
                 if (apply_filters_when_not_searching && s_apply_search_filters_when_not_searching)
                 {
                     Output::send(STR("Search all chunks (filters applied)\n"));
-                    m_object_iterator = &LiveView::guobjectarray_by_name_iterator;
                     m_is_searching_by_name = true;
                 }
                 else
                 {
                     Output::send(STR("Search for: {}\n"), search_buffer.empty() ? STR("") : ensure_str(search_buffer));
                     s_name_to_search_by = search_buffer;
-                    m_object_iterator = &LiveView::guobjectarray_by_name_iterator;
                     m_is_searching_by_name = true;
                 }
                 make_filtered_set(apply_filters_when_not_searching && s_apply_search_filters_when_not_searching);
@@ -1275,6 +1223,11 @@ namespace RC::GUI
     auto LiveView::get_selected_object_or_property() -> const ObjectOrProperty&
     {
         return s_object_view_history[s_currently_selected_object_index];
+    }
+
+    static auto is_valid_uobject(const FUObjectItem* object_item, const UObject* object) -> bool
+    {
+        return object && object_item && !object_item->IsUnreachable() && object_item->GetUObject() == object;
     }
 
     auto LiveView::get_selected_object(size_t index, UseIndex use_index) -> std::pair<const FUObjectItem*, UObject*>
@@ -1528,7 +1481,7 @@ namespace RC::GUI
             {
                 if (key_value_pair.Value == value_raw)
                 {
-                    enum_index = index;
+                    enum_index = static_cast<uint8>(index);
                     break;
                 }
             }
@@ -1604,7 +1557,7 @@ namespace RC::GUI
     auto LiveView::render_enum() -> void
     {
         const auto currently_selected_object = get_selected_object();
-        if (!currently_selected_object.first || !currently_selected_object.second)
+        if (!is_valid_uobject(currently_selected_object.first, currently_selected_object.second))
         {
             return;
         }
@@ -1628,7 +1581,7 @@ namespace RC::GUI
         for (const auto name : names)
         {
             auto enum_name = name.Key.ToString();
-            auto enum_friendly_name = UKismetNodeHelperLibrary::GetEnumeratorUserFriendlyName(uenum, name.Value);
+            auto enum_friendly_name = UKismetNodeHelperLibrary::GetEnumeratorUserFriendlyName(uenum, static_cast<uint8>(name.Value));
 
             ImGui::TableNextRow();
             bool open_edit_name_popup{};
@@ -1757,7 +1710,7 @@ namespace RC::GUI
     auto LiveView::render_bottom_panel() -> void
     {
         const auto currently_selected_object = get_selected_object();
-        if (!currently_selected_object.first || !currently_selected_object.second)
+        if (!is_valid_uobject(currently_selected_object.first, currently_selected_object.second))
         {
             return;
         }
@@ -1775,7 +1728,7 @@ namespace RC::GUI
     auto LiveView::render_properties() -> void
     {
         const auto currently_selected_object = get_selected_object();
-        if (!currently_selected_object.first || !currently_selected_object.second)
+        if (!is_valid_uobject(currently_selected_object.first, currently_selected_object.second))
         {
             return;
         }
@@ -1983,7 +1936,7 @@ namespace RC::GUI
 
     auto LiveView::render_info_panel_as_object(const FUObjectItem* object_item, UObject* object) -> void
     {
-        if (!object || (!object_item || object_item->IsUnreachable()))
+        if (!is_valid_uobject(object_item, object))
         {
             ImGui::Text("No object selected.");
             return;
@@ -2218,7 +2171,7 @@ namespace RC::GUI
     {
         if (is_object)
         {
-            return !object || object->IsUnreachable();
+            return !is_valid_uobject(object_item, object);
         }
         else
         {
@@ -2309,9 +2262,10 @@ namespace RC::GUI
         }
 
         auto currently_selected_object = get_selected_object_or_property();
+        const bool is_selected_object_valid = !currently_selected_object.IsUnreachable();
 
         ImGui::SameLine();
-        if (!currently_selected_object.is_object)
+        if (!is_selected_object_valid)
         {
             ImGui::BeginDisabled();
         }
@@ -2326,7 +2280,7 @@ namespace RC::GUI
                 Dumpers::call_generate_object_as_json(currently_selected_object.object);
             });
         }
-        if (!currently_selected_object.is_object)
+        if (!is_selected_object_valid)
         {
             ImGui::EndDisabled();
         }
@@ -2545,6 +2499,26 @@ namespace RC::GUI
         }
     }
 
+    static auto guobjectarray_by_index_iterator(const std::function<void(FUObjectItem*, UObject*)>& callable) -> void
+    {
+        for (int32_t i = 0; i < UObjectArray::GetNumElements(); i++)
+        {
+            auto* object_item = FUObjectArray::IndexToObject(i);
+            if (!object_item || object_item->IsUnreachable())
+            {
+                continue;
+            }
+
+            auto* object = object_item->GetUObject();
+            if (!object)
+            {
+                continue;
+            }
+
+            callable(object_item, object);
+        }
+    }
+
     auto LiveView::render() -> void
     {
         if (!UnrealInitializer::StaticStorage::bIsInitialized)
@@ -2566,6 +2540,12 @@ namespace RC::GUI
         {
             load_filters_from_disk();
             s_filters_loaded_from_disk = true;
+        }
+
+        if (m_force_refresh_search)
+        {
+            search(s_apply_search_filters_when_not_searching);
+            m_force_refresh_search = false;
         }
 
         // Handle deferred property edit popup
@@ -2865,21 +2845,34 @@ namespace RC::GUI
         if (ImGui::BeginPopupContextItem("##search-options"))
         {
             ImGui::Text("Search options");
-            ImGui::SameLine();
-            // Making sure the user can't enable filters when not searching, if they are currently actually searching.
-            // Otherwise it uses the wrong iterator.
-            auto is_searching_by_name = m_is_searching_by_name && !s_apply_search_filters_when_not_searching;
-            if (is_searching_by_name)
+            ImGui::NewLine();
+            if (ImGui::BeginTable("search_options_table_single_column", 1))
             {
-                ImGui::BeginDisabled();
-            }
-            if (ImGui::Checkbox("Apply filters when not searching", &s_apply_search_filters_when_not_searching))
-            {
-                search(true);
-            }
-            if (is_searching_by_name)
-            {
-                ImGui::EndDisabled();
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+
+                // Making sure the user can't enable filters when not searching, if they are currently actually searching.
+                // Otherwise it uses the wrong iterator.
+                auto is_searching_by_name = m_is_searching_by_name && !s_apply_search_filters_when_not_searching;
+                if (is_searching_by_name)
+                {
+                    ImGui::BeginDisabled();
+                }
+                if (ImGui::Checkbox("Apply filters when not searching", &s_apply_search_filters_when_not_searching))
+                {
+                    search(true);
+                }
+                if (is_searching_by_name)
+                {
+                    ImGui::EndDisabled();
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+
+                ImGui::Checkbox("Refresh search after switching tabs", &s_force_refresh_search_on_tab_switch);
+
+                ImGui::EndTable();
             }
             if (ImGui::BeginTable("search_options_table", 2))
             {
@@ -3242,10 +3235,12 @@ namespace RC::GUI
         {
             StringType result{};
             auto is_below_425 = Version::IsBelow(4, 25);
-            for (const auto& search_result : s_name_search_results)
-            {
-                UE4SSProgram::dump_uobject(search_result, nullptr, result, is_below_425);
-            }
+            guobjectarray_by_index_iterator([&](FUObjectItem*, UObject* search_result) {
+                if (s_name_search_results_set.contains(search_result))
+                {
+                    UE4SSProgram::dump_uobject(search_result, nullptr, result, is_below_425);
+                }
+            });
             ImGui::SetClipboardText(to_string(result).c_str());
         }
 
@@ -3262,115 +3257,63 @@ namespace RC::GUI
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4{0.156f, 0.156f, 0.156f, 1.0f});
         ImGui::BeginChild("LiveView_TreeView", {-16.0f, m_top_size}, true);
 
-        auto do_iteration = [&](int start, int end, const std::vector<UObject*>* objects_to_draw_ptr = nullptr) {
-            if (!objects_to_draw_ptr || objects_to_draw_ptr->empty())
+        auto do_iteration = [&](const int start, const int end, const std::vector<std::pair<FUObjectItem*, UObject*>>& objects_to_draw) {
+            for (int i = start; i < end; i++)
             {
-                // 1) If there's no valid pointer or it's empty, do old logic
-                ((*this).*((*this).m_object_iterator))(start, end, [&](UObject* object) {
-                    auto tree_node_name = std::string{get_object_full_name(object)};
-
-                    if (ImGui_TreeNodeEx(tree_node_name.c_str(), object))
-                    {
-                        m_currently_opened_tree_node = object;
-                        m_opened_tree_nodes.emplace(object);
-
-                        // The menu must be rendered both if the node is open and if it's closed.
-                        render_context_menu(tree_node_name, object);
-
-                        if (auto as_struct = Cast<UStruct>(object); as_struct)
-                        {
-                            render_struct_sub_tree_hierarchy(as_struct);
-                        }
-                        else
-                        {
-                            render_object_sub_tree_hierarchy(object);
-                        }
-
-                        ImGui::TreePop();
-                    }
-                    else
-                    {
-                        // Handle item-click selection
-                        if (ImGui::IsItemClicked())
-                        {
-                            select_object(0, object->GetObjectItem(), object, AffectsHistory::Yes);
-                        }
-                    }
-                    collapse_all_except(m_currently_opened_tree_node);
-                    render_context_menu(tree_node_name, object);
-                });
-            }
-            else
-            {
-                // 2) Otherwise, draw the filtered objects directly
-                const auto& objects_to_draw = *objects_to_draw_ptr;
-                for (int i = start; i < end; i++)
+                auto [object_item, object] = objects_to_draw[i];
+                if (!is_valid_uobject(object_item, object))
                 {
-                    UObject* object = objects_to_draw[i];
-                    if (!object) continue;
+                    continue;
+                }
 
-                    auto tree_node_name = std::string{get_object_full_name(object)};
+                auto tree_node_name = std::string{get_object_full_name(object)};
 
-                    if (ImGui_TreeNodeEx(tree_node_name.c_str(), object))
+                // The menu must be rendered both if the node is open and if it's closed.
+                if (ImGui_TreeNodeEx(tree_node_name.c_str(), object))
+                {
+                    m_currently_opened_tree_node = object;
+                    m_opened_tree_nodes.emplace(object);
+
+                    render_context_menu(tree_node_name, object);
+
+                    if (auto as_struct = Cast<UStruct>(object); as_struct)
                     {
-                        m_currently_opened_tree_node = object;
-                        m_opened_tree_nodes.emplace(object);
-
-                        render_context_menu(tree_node_name, object);
-
-                        if (auto as_struct = Cast<UStruct>(object); as_struct)
-                        {
-                            render_struct_sub_tree_hierarchy(as_struct);
-                        }
-                        else
-                        {
-                            render_object_sub_tree_hierarchy(object);
-                        }
-
-                        ImGui::TreePop();
+                        render_struct_sub_tree_hierarchy(as_struct);
                     }
                     else
                     {
-                        // Handle item-click selection
-                        if (ImGui::IsItemClicked())
-                        {
-                            select_object(0, object->GetObjectItem(), object, AffectsHistory::Yes);
-                        }
+                        render_object_sub_tree_hierarchy(object);
                     }
-                    collapse_all_except(m_currently_opened_tree_node);
-                    render_context_menu(tree_node_name, object);
+
+                    ImGui::TreePop();
                 }
+                else
+                {
+                    // Handle item-click selection
+                    if (ImGui::IsItemClicked())
+                    {
+                        select_object(0, object_item, object, AffectsHistory::Yes);
+                    }
+                }
+                collapse_all_except(m_currently_opened_tree_node);
+                render_context_menu(tree_node_name, object);
             }
         };
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0.0f, 0.0f});
 
         // 1) Gather objects you actually want to draw
-        std::vector<UObject*> objects_to_draw;
+        std::vector<std::pair<FUObjectItem*, UObject*>> objects_to_draw;
+        objects_to_draw.reserve(m_is_searching_by_name ? s_name_search_results_set.size() : UObjectArray::GetNumElements());
 
-        if (m_is_searching_by_name)
-        {
-            // If we are searching by name, presumably `s_name_search_results`
-            // already holds only valid objects.
-            objects_to_draw = s_name_search_results;
-        }
-        else
-        {
-            // Otherwise, filter the entire UObjectArray
-            objects_to_draw.reserve(UObjectArray::GetNumElements());
-            for (size_t i = 0; i < UObjectArray::GetNumElements(); i++)
+        // Iterating through the whole GUObjectArray because `s_name_search_results_set`
+        // has a chance to hold nullptrs for example on level transitions or when in another tab
+        guobjectarray_by_index_iterator([&](FUObjectItem* object_item, UObject* object) {
+            if (!m_is_searching_by_name || s_name_search_results_set.contains(object))
             {
-
-                if (FUObjectItem* obj = FUObjectArray::IndexToObject(i))
-                {
-                    // Skip destroyed/invalid objects here
-                    if (!obj->IsUnreachable())
-                    {
-                        objects_to_draw.push_back(obj->GetUObject());
-                    }
-                }
+                objects_to_draw.emplace_back(object_item, object);
             }
-        }
+        });
 
         // 2) Use clipper with the filtered array size
         ImGuiListClipper clipper{};
@@ -3379,7 +3322,7 @@ namespace RC::GUI
         // Forces the current opened node to always be rendered by the clipper
         for (int i = 0; i < objects_to_draw.size(); i++)
         {
-            if (objects_to_draw[i] == m_currently_opened_tree_node)
+            if (objects_to_draw[i].second == m_currently_opened_tree_node)
             {
                 clipper.IncludeItemsByIndex(i, i + 1);
                 break;
@@ -3395,7 +3338,7 @@ namespace RC::GUI
                 ImGui::SetCursorPosY(last_position);
                 clipper.DisplayStart = last_display_end;
             }
-            do_iteration(clipper.DisplayStart, clipper.DisplayEnd, &objects_to_draw);
+            do_iteration(clipper.DisplayStart, clipper.DisplayEnd, objects_to_draw);
             last_position = ImGui::GetCursorPosY();
             last_display_end = clipper.DisplayEnd;
         }
@@ -3406,7 +3349,7 @@ namespace RC::GUI
 
         render_info_panel();
         const auto& selected_item = get_selected_object_or_property();
-        if (selected_item.is_object)
+        if (selected_item.is_object && !selected_item.IsUnreachable())
         {
             m_function_caller_widget->render(selected_item.object);
         }

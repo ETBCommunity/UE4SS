@@ -84,7 +84,6 @@ namespace RC::GUI
         std::string_view m_default_search_buffer{"Search by type, path, and name..."};
         constexpr static size_t m_search_buffer_capacity = 2000;
         char* m_search_by_name_buffer{};
-        ObjectIteratorCallable m_object_iterator{&LiveView::guobjectarray_iterator};
         std::unordered_set<UObject*> m_opened_tree_nodes{};
         UObject* m_currently_opened_tree_node{};
         std::string m_current_property_value_buffer{};
@@ -104,6 +103,7 @@ namespace RC::GUI
         bool m_listeners_set{};
         bool m_listeners_allowed{};
         bool m_is_initialized{};
+        bool m_force_refresh_search{};
 
       public:
         LiveView();
@@ -127,7 +127,6 @@ namespace RC::GUI
         static std::vector<ObjectOrProperty> s_object_view_history;
         static size_t s_currently_selected_object_index;
         static std::unordered_map<UObject*, std::vector<size_t>> s_history_object_to_index;
-        static std::vector<UObject*> s_name_search_results;
         static std::unordered_set<UObject*> s_name_search_results_set;
         static std::string s_name_to_search_by;
         static std::vector<std::unique_ptr<Watch>> s_watches;
@@ -135,6 +134,7 @@ namespace RC::GUI
         static std::unordered_map<void*, std::vector<Watch*>> s_watch_containers;
         static bool s_include_inheritance;
         static bool s_apply_search_filters_when_not_searching;
+        static bool s_force_refresh_search_on_tab_switch;
         static bool s_create_listener_removed;
         static bool s_delete_listener_removed;
         static bool s_selected_item_deleted;
@@ -195,12 +195,6 @@ namespace RC::GUI
         auto get_selected_object(size_t index = 0, UseIndex = UseIndex::No) -> std::pair<const FUObjectItem*, UObject*>;
         auto get_selected_property(size_t index = 0, UseIndex = UseIndex::No) -> FProperty*;
 
-      private:
-        auto guobjectarray_iterator(int32_t int_data_1, int32_t int_data_2, const std::function<void(UObject*)>& callable) -> void;
-        auto guobjectarray_by_name_iterator([[maybe_unused]] int32_t int_data_1,
-                                            [[maybe_unused]] int32_t int_data_2,
-                                            const std::function<void(UObject*)>& callable) -> void;
-
       public:
         auto set_is_searching_by_name(bool new_value) -> void
         {
@@ -228,6 +222,10 @@ namespace RC::GUI
         auto unset_listeners() -> void;
         auto initialize() -> void;
         auto render() -> void;
+        auto force_refresh_search() -> void
+        {
+            m_force_refresh_search = s_force_refresh_search_on_tab_switch && m_is_searching_by_name;
+        }
         auto render_watches() -> void;
         auto process_watches() -> void;
         auto set_listeners_allowed(bool new_value) -> void

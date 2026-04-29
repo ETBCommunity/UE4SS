@@ -136,15 +136,22 @@ namespace RC::GUI
                 {
                     ImGui::BeginDisabled(true);
                 }
+                static bool live_view_tab_was_open{};
                 if (ImGui::BeginTabItem(ICON_FA_FILE_ALT " Live View"))
                 {
                     listeners_are_required = true;
                     m_live_view.set_listeners();
+                    if (!live_view_tab_was_open)
+                    {
+                        m_live_view.force_refresh_search();
+                    }
+                    live_view_tab_was_open = true;
                     m_live_view.render();
                     ImGui::EndTabItem();
                 }
                 else
                 {
+                    live_view_tab_was_open = false;
                     should_unset_listeners = true;
                 }
 

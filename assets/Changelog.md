@@ -1,6 +1,22 @@
-v1.2.4
+1.3.0-beta
 ==============
 TBD
+
+Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cda8aa151e2fdb15cbe6c10c9)
+
+## Changes
+
+- Hopefully fixed crashes related to live view
+- Added auto search refresh when switching to live view tab
+
+### If you are replacing an old installation, also replace the Mods folder to get the latest changes.
+
+#### If you want to develop mods, download the `zDev-UE4SS_...` version - it contains the pdb file for easier debugging.
+
+
+v1.2.4
+==============
+13-04-2026
 
 Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cda8aa151e2fdb15cbe6c10c9)
 
