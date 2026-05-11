@@ -1,7 +1,7 @@
 UEHelpers = require("UEHelpers")
 
 GlobalAr = nil
-ControllerCache = nil ---@type AActor|nil
+LocalPlayerCache = nil ---@type UObject|nil
 local HookActive = false
 JuiceActive = false
 SanityActive = false
@@ -14,15 +14,14 @@ function Log(Message)
     end
 end
 
-function CacheFirstController()
-    if ControllerCache == nil or not ControllerCache:IsValid() then
-        local NewControllerCache = UEHelpers.GetGameplayStatics(false):GetPlayerController(UEHelpers.GetWorldContextObject(), 0) --[[@as AActor]]
-        if NewControllerCache == nil or not NewControllerCache:IsValid() or not NewControllerCache:IsA("/Game/Multiplayer/MP_PlayerController.MP_PlayerController_C") then
-            return false
+function InitMod()
+    if LocalPlayerCache == nil or not LocalPlayerCache:IsValid() then
+        local GameInstance = UEHelpers.GetGameInstance()
+        LocalPlayerCache = GameInstance.LocalPlayers[1]
+        if not GameInstance:IsValid() or not LocalPlayerCache:IsValid() then
+            error("Couldn't find game instance or local player (game broken?)")
         end
-        ControllerCache = NewControllerCache
     end
-    return true
 end
 
 function StartHook()
@@ -35,20 +34,16 @@ function StartHook()
             local actor_name = actor:GetFName():ToString():sub(1, 8)
 
             if actor_name == "BPCharac" then
-                if ControllerCache ~= nil and ControllerCache:IsValid() and JuiceActive then
-                    JuiceActive = false
-                    if ControllerCache.Character:GetAddress() == actor:GetAddress() then
-                        ProcessJuice(ControllerCache.Character, false)
-                    end
+                PlayerController = LocalPlayerCache.PlayerController
+                if PlayerController:IsValid() and PlayerController.Character:GetAddress() == actor:GetAddress() and JuiceActive then
+                    ProcessJuice(PlayerController.Character, false)
                     return
                 end
             end
             if actor_name == "MP_PS_C_" then
-                if ControllerCache ~= nil and ControllerCache:IsValid() and SanityActive then
-                    SanityActive = false
-                    if ControllerCache.PlayerState:GetAddress() == actor:GetAddress() then
-                        ProcessSanity(ControllerCache.PlayerState, false)
-                    end
+                PlayerController = LocalPlayerCache.PlayerController
+                if PlayerController:IsValid() and PlayerController.PlayerState:GetAddress() == actor:GetAddress() and SanityActive then
+                    ProcessSanity(PlayerController.PlayerState, false)
                     return
                 end
             end

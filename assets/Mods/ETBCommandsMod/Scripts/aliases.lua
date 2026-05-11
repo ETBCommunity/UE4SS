@@ -1,34 +1,26 @@
 local PlayerCache = nil ---@type UObject|nil
 
+local commands = {
+    ["dc"] = "ToggleDebugCamera",
+    ["t"] = "Teleport",
+}
+
 local function ProcessAliases(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
-    local command = FullCommand:sub(1, 2)
+    InitMod()
 
-    if CacheFirstController() then
-        if command == "dc" then
-            if ControllerCache.Player ~= nil and ControllerCache.Player:IsValid() then
-                PlayerCache = ControllerCache.Player
-                UEHelpers.GetKismetSystemLibrary(false):ExecuteConsoleCommand(nil, FString("ToggleDebugCamera"), ControllerCache)
-            else
-                if PlayerCache ~= nil and PlayerCache:IsValid() then
-                    UEHelpers.GetKismetSystemLibrary(false):ExecuteConsoleCommand(nil, FString("ToggleDebugCamera"), PlayerCache.PlayerController)
-                else
-                    Log("Couldn't execute alias on this map, please use the full command.")
-                end
-            end
-        elseif command == "t" then
-            UEHelpers.GetKismetSystemLibrary(false):ExecuteConsoleCommand(nil, FString("Teleport"), ControllerCache)
-        end
-    else
-        Log("Couldn't execute alias on this map, please use the full command.")
-    end
+    local command = commands[FullCommand:sub(1, 2)]
+
+    UEHelpers.GetKismetSystemLibrary(false):ExecuteConsoleCommand(nil, FString(command), LocalPlayerCache.PlayerController)
 
     return true
 end
 
 local function ProcessHelp(FullCommand, Parameters, Ar)
     GlobalAr = Ar
+
+    InitMod()
 
     Log([[All custom commands (Command : Alias), case-insensetive:
         give : g (Give an item directly into the inventory)
@@ -39,6 +31,10 @@ local function ProcessHelp(FullCommand, Parameters, Ar)
         teleport : t (Teleport to where you're looking)
         fullbright : fb (Toggle fullbright)
         noclip (Toggle noclip mode)
+        bind (Bind a command to a key)
+        binds (Print all current binds)
+        unbind (Remove a custom bind)
+        unbindall (Remove all custom binds)
         help : aliases (This message)]])
     return true
 end

@@ -1,22 +1,24 @@
 local function ProcessJuiceCommand(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
-    if CacheFirstController() then
+    InitMod()
+
+    if LocalPlayerCache.PlayerController.Character:IsA("/Game/Game/BPCharacter_Demo.BPCharacter_Demo_C") then
         StartHook()
-        return ProcessJuice(ControllerCache.Character, true)
+        return ProcessJuice(LocalPlayerCache.PlayerController.Character, true)
     else
-        Log("Couldn't find the player controller.")
+        Log("Couldn't find player character (wrong map or not controlling character).")
         return true
     end
 end
 
 function ProcessJuice(Character, bPrint)
-    if Character == nil or not Character:IsValid() then
+    if not Character:IsValid() then
         Log("Player Character is invalid.")
         return true
     end
 
-    if not JuiceActive then
+    if not JuiceActive or not bPrint then
         JuiceActive = true
         Character.CharacterMovement.MaxWalkSpeed = 675
         Character.IsBurnedOut = true

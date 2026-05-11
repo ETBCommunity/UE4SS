@@ -19,6 +19,7 @@ local function MovementCallback()
             local UnitAcceleration = MovCompCache.Acceleration
             local Dir = KismetMathLibrary:Vector_CosineAngle2D(UnitAcceleration, LookVec)
             local NoClipAccelClamp = MovCompCache.MaxAcceleration
+            CharacterCache.IsBurnedOut = false
             if (MovCompCache.bIsSprinting) then
                 CharacterCache.Stamina = 45
                 NoClipAccelClamp = NoClipAccelClamp * 2.0
@@ -36,16 +37,19 @@ end
 
 local function ProcessNoclip(FullCommand, Parameters, Ar)
     GlobalAr = Ar
+    
+    InitMod()
 
-    if CacheFirstController() then
-        CharacterCache = ControllerCache.Character
+    if LocalPlayerCache.PlayerController.Character:IsA("/Game/Game/BPCharacter_Demo.BPCharacter_Demo_C") then
+        CharacterCache = LocalPlayerCache.PlayerController.Character
         MovCompCache = CharacterCache.CharacterMovement
-        KismetMathLibrary = UEHelpers.GetKismetMathLibrary()
+        KismetMathLibrary = UEHelpers.GetKismetMathLibrary(false)
 
         if not enabled then
             enabled = true
             MovCompCache:SetMovementMode(5, 0);
             MovCompCache.bCheatFlying = true;
+            CharacterCache:SetIsOverlapOnly(true)
             CharacterCache:SetActorEnableCollision(false);
             CharacterCache:SetMinPitch()
 
@@ -59,12 +63,13 @@ local function ProcessNoclip(FullCommand, Parameters, Ar)
             enabled = false
             MovCompCache:SetMovementMode(1, 0);
             MovCompCache.bCheatFlying = false;
+            CharacterCache:SetIsOverlapOnly(false)
             CharacterCache:SetActorEnableCollision(true);
 
             Log("Noclip mode off")
         end
     else
-        Log("Couldn't find the player controller.")
+        Log("Couldn't find player character (wrong map or not controlling character).")
     end
 
     return true

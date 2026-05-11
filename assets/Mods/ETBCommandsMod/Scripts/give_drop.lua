@@ -54,6 +54,8 @@ local commands = {
 local function ProcessSpawnItemCommand(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
+    InitMod()
+
     local command = FullCommand:sub(1, 2)
     command = commands[command]
 
@@ -103,18 +105,18 @@ local function ProcessSpawnItemCommand(FullCommand, Parameters, Ar)
         return true
     end
 
-    if CacheFirstController() then
+    if LocalPlayerCache.PlayerController.Character:IsA("/Game/Game/BPCharacter_Demo.BPCharacter_Demo_C") then
         if command:sub(1, 1) == "g" then
-            ControllerCache.Character:InvAddByName(FName(arg))
+            LocalPlayerCache.PlayerController.Character:InvAddByName(FName(arg))
             Log(string.format("Added %s to your inventory.", arg))
         else
-            ControllerCache.Character:DropItem_SERVER(FName(arg))
+            LocalPlayerCache.PlayerController.Character:DropItem_SERVER(FName(arg))
             Log(string.format("Spawned and dropped %s.", arg))
         end
 
         return true
     else
-        Log("Couldn't find the player controller.")
+        Log("Couldn't find player character (wrong map or not controlling character).")
         return true
     end
 end
