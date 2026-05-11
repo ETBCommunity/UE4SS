@@ -51,7 +51,7 @@ local commands = {
     ["d"] = "drop",
 }
 
-function ProcessSpawnItemCommand(FullCommand, Parameters, Ar)
+local function ProcessSpawnItemCommand(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
     local command = FullCommand:sub(1, 2)
@@ -103,23 +103,20 @@ function ProcessSpawnItemCommand(FullCommand, Parameters, Ar)
         return true
     end
 
-    if ControllerCache == nil or not ControllerCache:IsValid() then
-        ControllerCache = FindFirstOf("MP_PlayerController_C") --[[@as AActor]]
-        if ControllerCache == nil or not ControllerCache:IsValid() then
-            Log("Couldn't find the player controller.")
-            return true
+    if CacheFirstController() then
+        if command:sub(1, 1) == "g" then
+            ControllerCache.Character:InvAddByName(FName(arg))
+            Log(string.format("Added %s to your inventory.", arg))
+        else
+            ControllerCache.Character:DropItem_SERVER(FName(arg))
+            Log(string.format("Spawned and dropped %s.", arg))
         end
-    end
 
-    if command:sub(1, 1) == "g" then
-        ControllerCache.Character:InvAddByName(FName(arg))
-        Log(string.format("Added %s to your inventory.", arg))
+        return true
     else
-        ControllerCache.Character:DropItem_SERVER(FName(arg))
-        Log(string.format("Spawned and dropped %s.", arg))
+        Log("Couldn't find the player controller.")
+        return true
     end
-
-    return true
 end
 
 RegisterConsoleCommandHandler("give", ProcessSpawnItemCommand)

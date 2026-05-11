@@ -1,17 +1,13 @@
-function ProcessJuiceCommand(FullCommand, Parameters, Ar)
+local function ProcessJuiceCommand(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
-    if ControllerCache == nil or not ControllerCache:IsValid() then
-        ControllerCache = FindFirstOf("MP_PlayerController_C") --[[@as AActor]]
-        if ControllerCache == nil or not ControllerCache:IsValid() then
-            Log("Couldn't find the player controller.")
-            return true
-        end
+    if CacheFirstController() then
+        StartHook()
+        return ProcessJuice(ControllerCache.Character, true)
+    else
+        Log("Couldn't find the player controller.")
+        return true
     end
-
-    StartHook()
-
-    return ProcessJuice(ControllerCache.Character, true)
 end
 
 function ProcessJuice(Character, bPrint)

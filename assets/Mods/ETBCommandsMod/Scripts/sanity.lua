@@ -1,17 +1,13 @@
-function ProcessSanityCommand(FullCommand, Parameters, Ar)
+local function ProcessSanityCommand(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
-    if ControllerCache == nil or not ControllerCache:IsValid() then
-        ControllerCache = FindFirstOf("MP_PlayerController_C") --[[@as AActor]]
-        if ControllerCache == nil or not ControllerCache:IsValid() then
-            Log("Couldn't find the player controller.")
-            return true
-        end
+    if CacheFirstController() then
+        StartHook()
+        return ProcessSanity(ControllerCache.PlayerState, true)
+    else
+        Log("Couldn't find the player controller.")
+        return true
     end
-
-    StartHook()
-
-    return ProcessSanity(ControllerCache.PlayerState, true)
 end
 
 function ProcessSanity(State, bPrint)
