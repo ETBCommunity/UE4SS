@@ -133,11 +133,11 @@ local GlobalAr = nil
 local LocalPlayerCache = nil ---@type UObject|nil
 local KismetSystemLibrary = nil ---@type UObject|nil
 
-function Log(Message)
+local function Log(Message)
     if type(GlobalAr) == "userdata" and GlobalAr:type() == "FOutputDevice" then
         GlobalAr:Log(Message)
     else
-        print("[ETBCommandsMod] " .. Message .. "\n")
+        print("[ConsoleKeybindsMod] " .. Message .. "\n")
     end
 end
 
@@ -194,7 +194,7 @@ local function load()
 
     file:close()
 
-    for count in pairs(Binds) do
+    for _ in pairs(Binds) do
         setup_loop()
         break
     end
@@ -233,7 +233,6 @@ local function InitMod()
     ExecuteAsync(load)
 end
 
-
 local function ProcessBind(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
@@ -247,8 +246,8 @@ local function ProcessBind(FullCommand, Parameters, Ar)
             Log("Invalid key. Use \"listkeys\" to get all possible keys.")
         end
     else
-        if FullCommand:find(":|:", 1, true) or FullCommand:match("[^A-Za-z0-9_. ]") then
-            Log("Command cannot contain special symbols or separator.")
+        if FullCommand:match("[^A-Za-z0-9_%-. ]") then
+            Log("Command cannot contain special symbols.")
             return true
         end
 
@@ -319,25 +318,36 @@ local function ProcessUnBindAll(FullCommand, Parameters, Ar)
     return true
 end
 
+-- TODO: Somehow fix this function freezing the game for an insane amount of time
 local function ProcessListKeys(FullCommand, Parameters, Ar)
     GlobalAr = Ar
 
-    local BPF = StaticFindObject("/Script/Backrooms.Default__BackroomsBPFunctionLibrary")
-    if BPF and BPF:IsValid() then
-        BPF:SaveToClipboard("https://gist.github.com/Reokin/cd7f113c2b405e35e8f0afe7d92443a4")
+    local p = io.popen("clip", "w")
+    if p then
+        p:write("https://gist.github.com/Reokin/cd7f113c2b405e35e8f0afe7d92443a4")
+        p:close()
         Log("Copied to clipboard: https://gist.github.com/Reokin/cd7f113c2b405e35e8f0afe7d92443a4")
     else
-        Log("https://gist.github.com/Reokin/cd7f113c2b405e35e8f0afe7d92443a4")
+        Log([[Couldn't copy to clipboard, printed to UE4SS console.
+        https://gist.github.com/Reokin/cd7f113c2b405e35e8f0afe7d92443a4]])
+        print("[ConsoleKeybindsMod] https://gist.github.com/Reokin/cd7f113c2b405e35e8f0afe7d92443a4")
     end
 
     return true
 end
 
+if EngineTickAvailable then
 
-RegisterConsoleCommandHandler("bind", ProcessBind)
-RegisterConsoleCommandHandler("binds", ProcessBinds)
-RegisterConsoleCommandHandler("unbind", ProcessUnBind)
-RegisterConsoleCommandHandler("unbindall", ProcessUnBindAll)
-RegisterConsoleCommandHandler("listkeys", ProcessListKeys)
+    RegisterConsoleCommandHandler("bind", ProcessBind)
+    RegisterConsoleCommandHandler("binds", ProcessBinds)
+    RegisterConsoleCommandHandler("unbind", ProcessUnBind)
+    RegisterConsoleCommandHandler("unbindall", ProcessUnBindAll)
+    RegisterConsoleCommandHandler("listkeys", ProcessListKeys)
 
-temphandle = LoopInGameThreadAfterFrames(1, InitMod)
+    temphandle = LoopInGameThreadAfterFrames(1, InitMod)
+
+else
+
+    error("[ConsoleKeybindsMod] HookEngineTick is required for this mod.")
+
+end

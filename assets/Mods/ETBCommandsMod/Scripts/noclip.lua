@@ -4,6 +4,9 @@ local CharacterCache = nil
 local MovCompCache = nil
 local KismetMathLibrary = nil
 
+local NoClipAccelClampDefault = 2048.0
+
+-- Movement code by ProjectBorealis - https://github.com/ProjectBorealis/PBCharacterMovement/blob/main/Source/PBCharacterMovement/Private/Character/PBPlayerMovement.cpp#L1282
 local function MovementCallback()
     if enabled and MovCompCache:IsValid() and MovCompCache.bCheatFlying then
         if MovCompCache.Acceleration.X == 0.0 and MovCompCache.Acceleration.Y == 0.0 and MovCompCache.Acceleration.Z == 0.0 then
@@ -18,7 +21,7 @@ local function MovementCallback()
             local TangentialAccel = {X = (MovCompCache.Acceleration.X - PerpendicularAccel.X), Y = (MovCompCache.Acceleration.Y - PerpendicularAccel.Y), Z = (MovCompCache.Acceleration.Z)}
             local UnitAcceleration = MovCompCache.Acceleration
             local Dir = KismetMathLibrary:Vector_CosineAngle2D(UnitAcceleration, LookVec)
-            local NoClipAccelClamp = MovCompCache.MaxAcceleration
+            local NoClipAccelClamp = NoClipAccelClampDefault
             CharacterCache.IsBurnedOut = false
             if (MovCompCache.bIsSprinting) then
                 CharacterCache.Stamina = 45
@@ -52,6 +55,7 @@ local function ProcessNoclip(FullCommand, Parameters, Ar)
             CharacterCache:SetIsOverlapOnly(true)
             CharacterCache:SetActorEnableCollision(false);
             CharacterCache:SetMinPitch()
+            LocalPlayerCache.PlayerController.PlayerCameraManager.ViewPitchMin = -89.9
 
             if not hooked then
                 hooked = true
@@ -76,3 +80,4 @@ local function ProcessNoclip(FullCommand, Parameters, Ar)
 end
 
 RegisterConsoleCommandHandler("noclip", ProcessNoclip)
+RegisterConsoleCommandHandler("nc", ProcessNoclip)

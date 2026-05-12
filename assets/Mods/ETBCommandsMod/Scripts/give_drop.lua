@@ -67,7 +67,7 @@ local function ProcessSpawnItemCommand(FullCommand, Parameters, Ar)
     local arg = Parameters[1]
 
     if arg:lower() == "list" then
-        Log([[Available items (case-insensetive):
+        Log([[Available items (case-insensitive):
         AlmondConcentrate
         AlmondWater (Alias: aw)
         BugSpray

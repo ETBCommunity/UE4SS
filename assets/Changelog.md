@@ -1,4 +1,4 @@
-1.3.0-beta
+1.3.0
 ==============
 TBD
 
@@ -6,10 +6,24 @@ Based on [`0bfec09`](https://github.com/UE4SS-RE/RE-UE4SS/tree/0bfec09ee30b7c4cd
 
 ## Changes
 
+- Added a new mod: `ConsoleKeybindsMod` - it adds Source engine-like bind command to the console. This one should be game-agnostic which means it can theoretically work in other games without any changes.
+- - `bind <Key> <Command>` - bind a console command to a key (any command, engine or custom, doesn't matter)
+- - `binds` - print all binds
+- - `unbind <Key>` - unbind a key
+- - `unbindall`
+- - `listkeys` - get a list of all possible keys for bind (will freeze the game for some time)
+- New commands in `ETBCommandsMod`:
+- - `help` or `aliases` - prints all commands and aliases
+- - `dc` - alias for `ToggleDebugCamera`
+- - `t` - alias for `Teleport`
+- - `fullbright` or `fb` - toggle between Unlit and Lit modes
+- - `noclip` or `nc` - toggle source engine-like noclip (this one is very cool)
+- - `getpos` - copy current coordinates
+- - `setpos <X> <Y> <Z> <Pitch> <Yaw>` - teleport to coordinates
 - Hopefully fixed crashes related to live view
 - Added auto search refresh when switching to live view tab
 
-### If you are replacing an old installation, also replace the Mods folder to get the latest changes.
+### If you are replacing an old installation, also replace the Mods folder to get the latest changes (especially for this release).
 
 #### If you want to develop mods, download the `zDev-UE4SS_...` version - it contains the pdb file for easier debugging.
 
